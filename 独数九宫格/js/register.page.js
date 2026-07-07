@@ -1,4 +1,6 @@
         let inviteReferrerId = null;
+        const OWN_REFERRAL_LINK_KEY = 'mayiju_referral_link';
+        const OWN_REFERRAL_FLASH_KEY = 'mayiju_referral_flash';
         // #region debug-point B:register-runtime
         const DEBUG_SERVER_URL = `http://${location.hostname || '127.0.0.1'}:7777/event`;
         const DEBUG_SESSION_ID = "b-device-flow";
@@ -35,6 +37,27 @@
                 }
             } catch (e) {}
         })();
+
+        function buildOwnReferralLink(userId) {
+            if (!userId) return '';
+            const url = new URL('register.html', window.location.href);
+            url.searchParams.set('ref', String(userId));
+            return url.toString();
+        }
+
+        function persistOwnReferralLink(user) {
+            const userId = user && user.id ? String(user.id) : '';
+            if (!userId) return '';
+            const link = buildOwnReferralLink(userId);
+            const flash = {
+                userId,
+                link,
+                created_at: new Date().toISOString()
+            };
+            localStorage.setItem(OWN_REFERRAL_LINK_KEY, link);
+            localStorage.setItem(OWN_REFERRAL_FLASH_KEY, JSON.stringify(flash));
+            return link;
+        }
 
         function bytesToHex(bytes) {
             return Array.from(bytes || []).map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -161,15 +184,17 @@
                 if(window.MayijuIdentity){
                     window.MayijuIdentity.saveProfile(currentUser, { device: 'desktop', silent: true });
                 }
+                const ownReferralLink = persistOwnReferralLink(currentUser);
                 // #region debug-point B:register-success
                 reportDebugEvent('B', 'register.page.js:handleRegister:success', '[DEBUG] register submit success', {
                     userId: currentUser.id,
                     hasEmail: !!currentUser.email,
-                    hasPhone: !!currentUser.phone
+                    hasPhone: !!currentUser.phone,
+                    hasReferralLink: !!ownReferralLink
                 });
                 // #endregion
                 
-                messageEl.textContent = '注册成功，正在跳转...';
+                messageEl.textContent = '注册成功，专属推广链接已生成，正在跳转...';
                 messageEl.style.color = '#00cc66';
                 
                 // 延迟跳转

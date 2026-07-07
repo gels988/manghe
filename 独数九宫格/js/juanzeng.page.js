@@ -2,6 +2,8 @@
         const SYSTEM_PRICE = 660;
         const REFERRAL_REWARD = 222;
         const GIFT_SECRET = 'MAYIJU_GIFT_660_V1';
+        const OWN_REFERRAL_LINK_KEY = 'mayiju_referral_link';
+        const OWN_REFERRAL_FLASH_KEY = 'mayiju_referral_flash';
 
         let currentUser = null;
         let currentBalance = 0;
@@ -26,6 +28,7 @@
                 document.getElementById('user-email').textContent = currentUser.email || currentUser.phone || '已登录用户';
                 await loadBalance();
                 await loadHistory();
+                await refreshReferralPanel();
                 subscribeBalance();
             } catch (e) {
                 console.error('初始化失败', e);
@@ -163,6 +166,184 @@
             return null;
         }
 
+        function buildOwnReferralLink(userId) {
+            if (!userId) return '';
+            const url = new URL('register.html', window.location.href);
+            url.searchParams.set('ref', String(userId));
+            return url.toString();
+        }
+
+        function countPaidReferralRows(rows) {
+            return (Array.isArray(rows) ? rows : []).filter((row) => (
+                Number(row && row.total_donation || 0) >= SYSTEM_PRICE || Boolean(row && row.is_paid_customer)
+            )).length;
+        }
+
+        function ensureReferralPanel() {
+            if (!document.getElementById('mayiju-referral-style')) {
+                const style = document.createElement('style');
+                style.id = 'mayiju-referral-style';
+                style.textContent = `
+                    .referral-panel {
+                        margin: 18px 0;
+                        padding: 16px;
+                        border-radius: 12px;
+                        background: rgba(255, 215, 0, 0.08);
+                        border: 1px solid rgba(255, 215, 0, 0.2);
+                    }
+                    .referral-panel-title {
+                        font-size: 14px;
+                        color: #ffd700;
+                        font-weight: bold;
+                        margin-bottom: 10px;
+                    }
+                    .referral-panel-link {
+                        font-family: monospace;
+                        word-break: break-all;
+                        color: #fff;
+                        background: rgba(0, 0, 0, 0.18);
+                        border-radius: 8px;
+                        padding: 10px 12px;
+                    }
+                    .referral-panel-meta {
+                        margin-top: 10px;
+                        font-size: 12px;
+                        color: #cfcfcf;
+                        line-height: 1.7;
+                        white-space: pre-wrap;
+                    }
+                    .referral-panel-actions {
+                        display: flex;
+                        gap: 10px;
+                        margin-top: 12px;
+                        flex-wrap: wrap;
+                    }
+                    .referral-panel-actions button {
+                        flex: 1 1 140px;
+                        margin-top: 0;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            let panel = document.getElementById('referral-panel');
+            if (panel) return panel;
+
+            panel = document.createElement('div');
+            panel.id = 'referral-panel';
+            panel.className = 'referral-panel';
+            panel.innerHTML = `
+                <div class="referral-panel-title">推广链接</div>
+                <div id="referral-link-text" class="referral-panel-link">生成中...</div>
+                <div id="referral-progress-text" class="referral-panel-meta">正在读取本地账本...</div>
+                <div class="referral-panel-actions">
+                    <button id="copyReferralPanelBtn" type="button" class="copy-btn">复制推广链接</button>
+                    <button id="openSubsystemBtn" type="button" class="copy-btn">打开子系统</button>
+                </div>
+            `;
+
+            const historyCard = document.getElementById('history-card');
+            const container = document.querySelector('.container') || document.body;
+            if (historyCard && historyCard.parentNode) {
+                historyCard.parentNode.insertBefore(panel, historyCard);
+            } else {
+                container.appendChild(panel);
+            }
+            return panel;
+        }
+
+        function bindReferralPanelActions() {
+            const copyBtn = document.getElementById('copyReferralPanelBtn');
+            if (copyBtn && !copyBtn.dataset.bound) {
+                copyBtn.dataset.bound = '1';
+                copyBtn.addEventListener('click', () => {
+                    const link = (document.getElementById('referral-link-text') || {}).dataset.link || '';
+                    if (!link) {
+                        showNotification('推广链接尚未生成', 'error');
+                        return;
+                    }
+                    copyPaymentValue(link);
+                });
+            }
+            const openBtn = document.getElementById('openSubsystemBtn');
+            if (openBtn && !openBtn.dataset.bound) {
+                openBtn.dataset.bound = '1';
+                openBtn.addEventListener('click', () => {
+                    window.location.href = 'zixitong.html';
+                });
+            }
+        }
+
+        async function loadReferralOverview() {
+            if (!currentUser || !currentUser.id) {
+                return null;
+            }
+            const [userRes, referralRes, codeRes] = await Promise.all([
+                supabaseClient.from('users').select('*').eq('id', currentUser.id).maybeSingle(),
+                supabaseClient.from('users').select('*').eq('referrer_id', currentUser.id).order('created_at', { ascending: false }),
+                supabaseClient.from('activation_codes').select('*').eq('owner_user_id', currentUser.id)
+            ]);
+            const userRow = userRes.data || null;
+            const referralRows = referralRes.data || [];
+            const codeRows = codeRes.data || [];
+            const paidReferralCount = Math.max(
+                Number(userRow && userRow.referred_paid_count || 0),
+                countPaidReferralRows(referralRows)
+            );
+            const unlockedFreeSlots = Math.floor(paidReferralCount / 3);
+            const usedFreeSlots = codeRows.filter((row) => row && row.source_type === 'free_referral_quota').length;
+            return {
+                link: buildOwnReferralLink(currentUser.id),
+                totalReferrals: referralRows.length,
+                paidReferralCount,
+                nextUnlockNeed: paidReferralCount % 3 === 0 ? 0 : (3 - (paidReferralCount % 3)),
+                unlockedFreeSlots,
+                usedFreeSlots,
+                availableFreeSlots: Math.max(0, unlockedFreeSlots - usedFreeSlots)
+            };
+        }
+
+        async function refreshReferralPanel() {
+            const panel = ensureReferralPanel();
+            bindReferralPanelActions();
+            if (!panel) return;
+
+            const linkEl = document.getElementById('referral-link-text');
+            const metaEl = document.getElementById('referral-progress-text');
+            if (!currentUser || !currentUser.id) {
+                if (linkEl) {
+                    linkEl.textContent = '请先注册或登录';
+                    linkEl.dataset.link = '';
+                }
+                if (metaEl) {
+                    metaEl.textContent = '注册后系统会自动生成你的专属推广链接。';
+                }
+                return;
+            }
+
+            const overview = await loadReferralOverview();
+            if (!overview) return;
+            localStorage.setItem(OWN_REFERRAL_LINK_KEY, overview.link);
+            const flash = safeParse(localStorage.getItem(OWN_REFERRAL_FLASH_KEY));
+            const showNewLink = flash && flash.userId === currentUser.id;
+
+            if (linkEl) {
+                linkEl.textContent = overview.link;
+                linkEl.dataset.link = overview.link;
+            }
+            if (metaEl) {
+                metaEl.textContent =
+                    `${showNewLink ? '你的专属推广链接已生成。\n' : ''}` +
+                    `累计登记 ${overview.totalReferrals} 人，已完成付费激活 ${overview.paidReferralCount} 人。\n` +
+                    `每位付费推广奖励 ${REFERRAL_REWARD} G；每满 3 人解锁 1 个免费激活名额。\n` +
+                    `当前可用免费名额 ${overview.availableFreeSlots} 个` +
+                    (overview.nextUnlockNeed > 0 ? `，再完成 ${overview.nextUnlockNeed} 人可再解锁 1 个。` : '，已满足下一档解锁条件。');
+            }
+            if (showNewLink) {
+                localStorage.removeItem(OWN_REFERRAL_FLASH_KEY);
+            }
+        }
+
         async function markActivated(meta) {
             if (window.MayijuSecurity && typeof window.MayijuSecurity.persistActivation === 'function') {
                 window.MayijuSecurity.persistActivation(meta || {});
@@ -245,11 +426,15 @@
             const referrer = referrerRes.data;
             if (!referrer) return;
 
+            const nextPaidReferralCount = Number(referrer.referred_paid_count || 0) + 1;
+            const prevUnlockedFreeSlots = Math.floor(Number(referrer.referred_paid_count || 0) / 3);
+            const nextUnlockedFreeSlots = Math.floor(nextPaidReferralCount / 3);
             const nextBalance = Number(referrer.balance_g || referrer.gas_balance || 0) + REFERRAL_REWARD;
             await supabaseClient.from('users').update({
                 balance_g: nextBalance,
                 gas_balance: nextBalance,
-                referred_paid_count: Number(referrer.referred_paid_count || 0) + 1,
+                referred_paid_count: nextPaidReferralCount,
+                free_activation_slots: nextUnlockedFreeSlots,
                 last_active: new Date().toISOString()
             }).eq('id', referrer.id);
 
@@ -269,6 +454,16 @@
                 type: 'single_referral_reward',
                 created_at: new Date().toISOString()
             });
+
+            if (nextUnlockedFreeSlots > prevUnlockedFreeSlots) {
+                await supabaseClient.from('gas_transfer_log').insert({
+                    from_user_id: userRow.id,
+                    to_user_id: referrer.id,
+                    amount: nextUnlockedFreeSlots - prevUnlockedFreeSlots,
+                    type: 'free_activation_quota_unlock',
+                    created_at: new Date().toISOString()
+                });
+            }
         }
 
         async function finalizePaidActivation({ amount, method, proof }) {
@@ -370,6 +565,7 @@
                     { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${currentUser.id}` },
                     async () => {
                         await loadBalance();
+                        await refreshReferralPanel();
                     }
                 )
                 .subscribe();
@@ -439,6 +635,8 @@
 
         window.onload = () => {
             setTimeout(() => {
+                ensureReferralPanel();
+                bindReferralPanelActions();
                 if (window.MayijuSecurity && typeof window.MayijuSecurity.upgradeLegacyActivationState === 'function') {
                     window.MayijuSecurity.upgradeLegacyActivationState();
                 }

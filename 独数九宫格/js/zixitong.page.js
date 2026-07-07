@@ -109,6 +109,125 @@
             return `GIFT-${payload}-${sign}`;
         }
 
+        function getCurrentBalanceValue() {
+            return Number(currentUserData?.balance_g || currentUserData?.gas_balance || 0);
+        }
+
+        function getPaidReferralCount() {
+            const stored = Number(currentUserData?.referred_paid_count || 0);
+            const computed = citizensData.filter((item) => (
+                Number(item?.total_donation || 0) >= GIFT_COST || Boolean(item?.is_paid_customer)
+            )).length;
+            return Math.max(stored, computed);
+        }
+
+        function getUnlockedFreeActivationCount() {
+            return Math.floor(getPaidReferralCount() / 3);
+        }
+
+        function getUsedFreeActivationCount() {
+            return activationCodes.filter((item) => item && item.source_type === 'free_referral_quota').length;
+        }
+
+        function getAvailableFreeActivationCount() {
+            return Math.max(0, getUnlockedFreeActivationCount() - getUsedFreeActivationCount());
+        }
+
+        function getAvailableGiftCodeCount() {
+            return Math.floor(getCurrentBalanceValue() / GIFT_COST) + getAvailableFreeActivationCount();
+        }
+
+        function getReferralRewardTotal() {
+            return getPaidReferralCount() * REFERRAL_REWARD;
+        }
+
+        function ensurePromoWidgets() {
+            if (!document.getElementById('mayiju-referral-style')) {
+                const style = document.createElement('style');
+                style.id = 'mayiju-referral-style';
+                style.textContent = `
+                    .referral-fallback-card {
+                        margin: 14px 0;
+                        padding: 14px;
+                        border-radius: 12px;
+                        border: 1px solid rgba(255, 215, 0, 0.25);
+                        background: rgba(255, 215, 0, 0.08);
+                    }
+                    .referral-fallback-title {
+                        color: #ffd700;
+                        font-weight: bold;
+                        margin-bottom: 10px;
+                    }
+                    .referral-fallback-link {
+                        font-family: monospace;
+                        word-break: break-all;
+                        background: rgba(0, 0, 0, 0.18);
+                        border-radius: 8px;
+                        padding: 10px 12px;
+                    }
+                    .referral-fallback-meta {
+                        margin-top: 10px;
+                        font-size: 12px;
+                        line-height: 1.7;
+                        color: #d6d6d6;
+                        white-space: pre-wrap;
+                    }
+                    .referral-fallback-actions {
+                        margin-top: 10px;
+                        display: flex;
+                        gap: 10px;
+                        flex-wrap: wrap;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            if (document.getElementById('invite-link')) {
+                if (!document.getElementById('invite-progress')) {
+                    const host = document.getElementById('invite-link');
+                    const meta = document.createElement('div');
+                    meta.id = 'invite-progress';
+                    meta.className = 'note';
+                    host.insertAdjacentElement('afterend', meta);
+                }
+                return;
+            }
+
+            const card = document.createElement('div');
+            card.id = 'referral-fallback-card';
+            card.className = 'referral-fallback-card';
+            card.innerHTML = `
+                <div class="referral-fallback-title">推广复制区</div>
+                <div id="invite-link" class="referral-fallback-link">生成中...</div>
+                <div id="invite-progress" class="referral-fallback-meta">正在读取推广状态...</div>
+                <div class="referral-fallback-actions">
+                    <button class="btn btn-primary" id="copyInviteBtn" type="button">复制链接</button>
+                    <button class="btn btn-secondary" id="regenInviteBtn" type="button">重新生成</button>
+                    <button class="btn btn-secondary" id="openRegisterBtn" type="button">打开注册页</button>
+                </div>
+            `;
+
+            const container = document.querySelector('.container') || document.body;
+            const ownerEmail = document.getElementById('owner-email');
+            if (ownerEmail && ownerEmail.parentElement) {
+                ownerEmail.parentElement.insertAdjacentElement('afterend', card);
+            } else {
+                container.insertAdjacentElement('afterbegin', card);
+            }
+        }
+
+        function renderReferralProgress() {
+            const progressEl = document.getElementById('invite-progress');
+            if (!progressEl) return;
+            const paidReferralCount = getPaidReferralCount();
+            const freeSlots = getAvailableFreeActivationCount();
+            const needNext = paidReferralCount % 3 === 0 ? 0 : (3 - (paidReferralCount % 3));
+            progressEl.textContent =
+                `已登记 ${citizensData.length} 人，已完成付费激活 ${paidReferralCount} 人。\n` +
+                `已累计奖励 ${getReferralRewardTotal()} G；当前可用免费激活名额 ${freeSlots} 个。\n` +
+                (needNext > 0 ? `再完成 ${needNext} 人付费激活，可再解锁 1 个免费名额。` : '当前已经满足下一档免费名额解锁条件。');
+        }
+
         async function loadData() {
             try {
                 const [userRes, citizensRes, codesRes, donationRes, transferRes] = await Promise.all([
@@ -135,6 +254,7 @@
                 donationRecords = donationRes.data || [];
                 transferLogs = transferRes.data || [];
 
+                ensurePromoWidgets();
                 updateStats();
                 renderCitizens();
                 renderGiftCodes();
@@ -149,24 +269,32 @@
         }
 
         function updateStats() {
-            const balance = Number(currentUserData?.balance_g || currentUserData?.gas_balance || 0);
+            const balance = getCurrentBalanceValue();
             const paidCitizens = citizensData.filter(c => Number(c.total_donation || 0) >= GIFT_COST);
-            const availableGiftCount = Math.floor(balance / GIFT_COST);
-            document.getElementById('gas-balance').textContent = balance;
-            document.getElementById('citizen-count').textContent = citizensData.length;
-            document.getElementById('active-count').textContent = paidCitizens.length;
-            document.getElementById('donated-count').textContent = availableGiftCount;
+            const availableGiftCount = getAvailableGiftCodeCount();
+            const gasBalanceEl = document.getElementById('gas-balance');
+            const citizenCountEl = document.getElementById('citizen-count');
+            const activeCountEl = document.getElementById('active-count');
+            const donatedCountEl = document.getElementById('donated-count');
+            if (gasBalanceEl) gasBalanceEl.textContent = balance;
+            if (citizenCountEl) citizenCountEl.textContent = citizensData.length;
+            if (activeCountEl) activeCountEl.textContent = paidCitizens.length;
+            if (donatedCountEl) donatedCountEl.textContent = availableGiftCount;
+            renderReferralProgress();
         }
 
         function generatePromoLink() {
+            ensurePromoWidgets();
             const displayElement = document.getElementById('invite-link');
             if (!displayElement) return;
 
             const ownerId = currentUser && currentUser.id ? currentUser.id : 'USER_LOCAL';
-            const baseUrl = window.location.origin ? (window.location.origin + '/register.html') : 'register.html';
-            const link = baseUrl + '?ref=' + encodeURIComponent(ownerId);
+            const url = new URL('register.html', window.location.href);
+            url.searchParams.set('ref', String(ownerId));
+            const link = url.toString();
             displayElement.textContent = link;
             displayElement.dataset.link = link;
+            renderReferralProgress();
             return link;
         }
 
@@ -195,9 +323,12 @@
             const container = document.getElementById('gift-code-container');
             if (!container) return;
             if (!activationCodes.length) {
+                const freeSlots = getAvailableFreeActivationCount();
+                const needNext = getPaidReferralCount() % 3 === 0 ? 0 : (3 - (getPaidReferralCount() % 3));
                 container.innerHTML = `
                     <div class="note gift-empty-note">
-                        当前还没有赠送激活码。每推荐成交 3 人可累计 666G，可立即生成 1 个赠送码并扣减 660G。
+                        当前还没有赠送激活码。每位付费推广奖励 ${REFERRAL_REWARD}G，每满 3 人立即解锁 1 个免费激活名额。
+                        当前可用免费名额 ${freeSlots} 个${needNext > 0 ? `，再完成 ${needNext} 人可再解锁 1 个。` : '，可立即生成免费激活码。'}
                     </div>
                 `;
                 return;
@@ -207,7 +338,7 @@
                 <div class="gift-card">
                     <div class="gift-code-text">${escapeHtml(code.code)}</div>
                     <div class="gift-code-meta">
-                        备注: ${escapeHtml(code.note || '未填写')} | 状态: ${escapeHtml(code.status || 'new')} | 扣减: ${escapeHtml(code.cost_g || GIFT_COST)}G
+                        备注: ${escapeHtml(code.note || '未填写')} | 状态: ${escapeHtml(code.status || 'new')} | 来源: ${escapeHtml(code.source_type === 'free_referral_quota' ? '免费名额' : 'G积分扣减')} | 扣减: ${escapeHtml(code.cost_g || 0)}G
                     </div>
                     <div class="btn-group btn-group-top">
                         <button class="btn btn-primary gift-copy-btn" data-code="${escapeHtml(code.code)}">📋 复制激活码</button>
@@ -225,7 +356,10 @@
             const ownedCitizenIds = new Set(citizensData.map(item => item.id));
             const ownedDonations = donationRecords.filter(item => ownedCitizenIds.has(item.user_id));
             const ownedRewards = transferLogs.filter(item => item.type === 'single_referral_reward' && item.to_user_id === currentUser.id);
-            const ownGiftCosts = transferLogs.filter(item => item.type === 'gift_code_issue' && item.from_user_id === currentUser.id);
+            const ownGiftCosts = transferLogs.filter(item => (
+                item.from_user_id === currentUser.id &&
+                (item.type === 'gift_code_issue' || item.type === 'free_activation_quota_issue' || item.type === 'free_activation_quota_unlock')
+            ));
             const logs = [];
             const keyword = String((document.getElementById('trade-log-filter') || {}).value || '').trim().toLowerCase();
 
@@ -258,10 +392,15 @@
             });
 
             ownGiftCosts.forEach((item) => {
+                const title = item.type === 'free_activation_quota_unlock'
+                    ? `免费激活名额 +${item.amount || 0}`
+                    : (item.type === 'free_activation_quota_issue'
+                        ? '免费激活名额已使用'
+                        : `赠送激活码扣减 -${item.amount || GIFT_COST}G`);
                 logs.push({
                     at: item.created_at,
-                    title: `赠送激活码扣减 -${item.amount || GIFT_COST}G`,
-                    meta: `扣减类型: ${item.type} | 当前已生成码数: ${activationCodes.length}`,
+                    title,
+                    meta: `记录类型: ${item.type} | 当前已生成码数: ${activationCodes.length}`,
                     keyword: `${item.type || ''} ${item.from_user_id || ''}`
                 });
             });
@@ -597,42 +736,62 @@
         }
 
         async function generateGiftCode() {
-            const balance = Number(currentUserData?.balance_g || currentUserData?.gas_balance || 0);
-            if (balance < GIFT_COST) {
+            const balance = getCurrentBalanceValue();
+            const freeQuota = getAvailableFreeActivationCount();
+            const useFreeQuota = freeQuota > 0;
+            if (!useFreeQuota && balance < GIFT_COST) {
                 showNotification('GAS 不足 660，暂时无法生成赠送激活码', 'error');
                 return;
             }
 
             const note = document.getElementById('gift-recipient-note').value.trim();
             const code = buildGiftCode(currentUser.id);
-            const nextBalance = balance - GIFT_COST;
+            const nextBalance = useFreeQuota ? balance : (balance - GIFT_COST);
+            const sourceType = useFreeQuota ? 'free_referral_quota' : 'balance_purchase';
+            const costG = useFreeQuota ? 0 : GIFT_COST;
 
             try {
                 await supabase.from('activation_codes').insert({
                     owner_user_id: currentUser.id,
                     code,
                     note: note || null,
-                    cost_g: GIFT_COST,
+                    cost_g: costG,
+                    source_type: sourceType,
                     status: 'new',
                     created_at: new Date().toISOString()
                 });
 
-                await supabase.from('users').update({
-                    balance_g: nextBalance,
-                    gas_balance: nextBalance,
-                    last_active: new Date().toISOString()
-                }).eq('id', currentUser.id);
+                if (useFreeQuota) {
+                    await supabase.from('gas_transfer_log').insert({
+                        from_user_id: currentUser.id,
+                        to_user_id: null,
+                        amount: 1,
+                        type: 'free_activation_quota_issue',
+                        created_at: new Date().toISOString()
+                    });
+                } else {
+                    await supabase.from('users').update({
+                        balance_g: nextBalance,
+                        gas_balance: nextBalance,
+                        last_active: new Date().toISOString()
+                    }).eq('id', currentUser.id);
 
-                await supabase.from('gas_transfer_log').insert({
-                    from_user_id: currentUser.id,
-                    to_user_id: null,
-                    amount: GIFT_COST,
-                    type: 'gift_code_issue',
-                    created_at: new Date().toISOString()
-                });
+                    await supabase.from('gas_transfer_log').insert({
+                        from_user_id: currentUser.id,
+                        to_user_id: null,
+                        amount: GIFT_COST,
+                        type: 'gift_code_issue',
+                        created_at: new Date().toISOString()
+                    });
+                }
 
                 document.getElementById('gift-recipient-note').value = '';
-                showNotification('已生成赠送激活码，并自动扣减 660G', 'success');
+                showNotification(
+                    useFreeQuota
+                        ? '已使用 1 个免费激活名额生成赠送激活码'
+                        : '已生成赠送激活码，并自动扣减 660G',
+                    'success'
+                );
                 await loadData();
             } catch (error) {
                 console.error(error);
@@ -702,6 +861,7 @@
         }
 
         window.addEventListener('DOMContentLoaded', function() {
+            ensurePromoWidgets();
             generatePromoLink();
             setLedgerStateMode(ledgerStateMode);
             const refreshProfileBtn = document.getElementById('refreshProfileBtn');
