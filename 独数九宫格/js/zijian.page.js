@@ -6,6 +6,8 @@
     const checksEl = document.getElementById('checks');
     const autoFixPanel = document.getElementById('autoFixPanel');
     const fixLogEl = document.getElementById('fixLog');
+    const OFFICIAL_WEB_ORIGIN = 'https://dushu-cd1.pages.dev';
+    const OFFICIAL_API_ORIGIN = 'https://rome-moss-gained-originally.trycloudflare.com';
     
     // 系统状态
     const SystemState = {
@@ -27,7 +29,8 @@
       'testDBQuery()': testDBQuery,
       'fixDatabase()': fixDatabase,
       'fixEntropy()': fixEntropy,
-      'showEntropyLog()': showEntropyLog
+      'showEntropyLog()': showEntropyLog,
+      'fixOfficialRouting()': fixOfficialRouting
     };
     
     // 记录日志
@@ -128,6 +131,37 @@
       
       const text = statusEl.querySelector('span:last-child') || statusEl;
       text.textContent = msg;
+    }
+
+    function getReferralLinkState() {
+      return String(localStorage.getItem('mayiju_referral_link') || '').trim();
+    }
+
+    function isDevOrigin(origin) {
+      const value = String(origin || '').trim();
+      return value.startsWith('http://localhost') ||
+        value.startsWith('http://127.0.0.1') ||
+        value.startsWith('http://192.168.') ||
+        value.startsWith('http://10.') ||
+        value.startsWith('http://172.');
+    }
+
+    function isOfficialRuntimeOrigin(origin) {
+      const value = String(origin || '').trim();
+      return !value || value === OFFICIAL_WEB_ORIGIN || isDevOrigin(value);
+    }
+
+    function normalizeOfficialReferralLink(raw) {
+      if (!raw) return '';
+      try {
+        const parsed = new URL(String(raw));
+        const normalized = new URL('/register.html', OFFICIAL_WEB_ORIGIN);
+        const ref = parsed.searchParams.get('ref');
+        if (ref) normalized.searchParams.set('ref', ref);
+        return normalized.toString();
+      } catch {
+        return '';
+      }
     }
     
     // ========== 通讯机制核心 ==========
@@ -569,6 +603,71 @@
       }
     }
 
+    function checkOfficialRouting() {
+      log('检查正式域名与推广路由...', 'INFO');
+
+      const currentOrigin = window.location && window.location.origin ? window.location.origin : '';
+      const referralLink = getReferralLinkState();
+      const referralOk = !referralLink || referralLink.startsWith(OFFICIAL_WEB_ORIGIN + '/register.html');
+      const runtimeOk = isOfficialRuntimeOrigin(currentOrigin);
+      const allPass = runtimeOk && referralOk;
+      const details = [
+        `运行域名: ${currentOrigin || '未知'}`,
+        `正式域名: ${OFFICIAL_WEB_ORIGIN}`,
+        `API 地址: ${OFFICIAL_API_ORIGIN}`,
+        `推广链接: ${referralLink || '未缓存'}`
+      ].join(' | ');
+
+      if (allPass) {
+        addCheckResult('🌍 正式域名路由', 'pass', details);
+        return { status: 'pass', canFix: false };
+      }
+
+      addCheckResult('🌍 正式域名路由', 'fail', details, [
+        { label: '自动纠正', action: 'fixOfficialRouting()' }
+      ]);
+      return { status: 'fail', canFix: true, fixFn: fixOfficialRouting };
+    }
+
+    async function fixOfficialRouting() {
+      log('尝试修复正式域名与推广路由...', 'FIX');
+      showFixLog('正在校正正式域名与推广链接...');
+
+      try {
+        const referralLink = getReferralLinkState();
+        const normalizedReferral = normalizeOfficialReferralLink(referralLink);
+        if (referralLink && normalizedReferral && normalizedReferral !== referralLink) {
+          localStorage.setItem('mayiju_referral_link', normalizedReferral);
+          showFixLog('✅ 已改写本地推广链接为正式域名');
+        }
+
+        const flashRaw = localStorage.getItem('mayiju_referral_flash');
+        if (flashRaw) {
+          try {
+            const parsed = JSON.parse(flashRaw);
+            parsed.link = parsed.link ? (normalizeOfficialReferralLink(parsed.link) || parsed.link) : normalizedReferral;
+            localStorage.setItem('mayiju_referral_flash', JSON.stringify(parsed));
+          } catch {}
+        }
+
+        const currentOrigin = window.location && window.location.origin ? window.location.origin : '';
+        if (currentOrigin && !isOfficialRuntimeOrigin(currentOrigin)) {
+          const target = new URL(window.location.pathname.split('/').pop() || 'zijian.html', OFFICIAL_WEB_ORIGIN);
+          if (window.location.search) target.search = window.location.search;
+          if (window.location.hash) target.hash = window.location.hash;
+          showFixLog(`✅ 即将跳转到正式域名: ${target.toString()}`);
+          setTimeout(() => { window.location.href = target.toString(); }, 800);
+        } else {
+          addCheckResult('🌍 正式域名路由', 'fix', `已校正缓存链接 | 正式域名: ${OFFICIAL_WEB_ORIGIN}`);
+        }
+        return true;
+      } catch (error) {
+        log('正式域名路由修复失败: ' + error.message, 'ERROR');
+        showFixLog('❌ 正式域名路由修复失败: ' + error.message);
+        return false;
+      }
+    }
+
     async function checkDesktopInteractionContracts() {
       log('检查电脑端按钮契约...', 'INFO');
 
@@ -668,6 +767,8 @@
       log('\n[阶段 1/3] 基础环境检查', 'INFO');
       checkBrowserEnvironment();
       checkLocalStorage();
+      const officialRoutingResult = checkOfficialRouting();
+      SystemState.checkResults['officialRouting'] = officialRoutingResult;
       await checkDesktopInteractionContracts();
       
       // 阶段2: 通讯检测（如未连接则尝试）

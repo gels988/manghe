@@ -1,6 +1,6 @@
 # MAYIJU 静态发布包
 
-本项目可直接部署到 `GitHub Pages` 或 `Cloudflare Pages`，不依赖外部云数据库。
+本项目正式发布地址为 `https://dushu-cd1.pages.dev`，不再使用 `GitHub Pages` 公开入口。
 
 ## 最小发布内容
 
@@ -22,26 +22,15 @@
 - `signaling-server.mjs`
 - `package.json`
 
-## GitHub Pages
-
-1. 新建仓库并上传整个目录。
-2. 在仓库设置中启用 `GitHub Pages`。
-3. 选择从主分支根目录发布。
-4. 发布后访问：
-
-```text
-https://你的用户名.github.io/仓库名/register.html
-```
-
 ## Cloudflare Pages
 
 1. 连接 GitHub 仓库。
 2. 构建命令留空。
 3. 输出目录填写 `/` 或留空。
-4. 发布后访问：
+4. 发布后访问正式地址：
 
 ```text
-https://你的项目.pages.dev/register.html
+https://dushu-cd1.pages.dev/register.html
 ```
 
 ## 本地测试
@@ -75,5 +64,7 @@ ws://localhost:8787
 ## 说明
 
 - 推荐奖励、赠送激活码、成交日志全部保存在浏览器本地。
+- 正式网页域名只保留 `https://dushu-cd1.pages.dev`。
+- API 智能体入口只保留 `https://rome-moss-gained-originally.trycloudflare.com`。
 - 若更换浏览器或清理站点数据，需要先导出账本再迁移。
 - 静态托管仅负责页面分发，不保存你的业务数据。

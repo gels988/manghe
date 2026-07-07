@@ -2,6 +2,8 @@
         const REFERRAL_REWARD = 222;
         const GIFT_COST = 660;
         const GIFT_SECRET = 'MAYIJU_GIFT_660_V1';
+        const OFFICIAL_WEB_ORIGIN = 'https://dushu-cd1.pages.dev';
+        const OFFICIAL_API_ORIGIN = 'https://rome-moss-gained-originally.trycloudflare.com';
 
         if (!supabase) {
             console.error('Supabase client not initialized via db_client.js');
@@ -139,6 +141,25 @@
 
         function getReferralRewardTotal() {
             return getPaidReferralCount() * REFERRAL_REWARD;
+        }
+
+        function getStoredReferralLink() {
+            return String(localStorage.getItem('mayiju_referral_link') || '').trim();
+        }
+
+        function isAllowedRuntimeOrigin(origin) {
+            const value = String(origin || '').trim();
+            return !value ||
+                value === OFFICIAL_WEB_ORIGIN ||
+                value.startsWith('http://localhost') ||
+                value.startsWith('http://127.0.0.1') ||
+                value.startsWith('http://192.168.') ||
+                value.startsWith('http://10.') ||
+                value.startsWith('http://172.');
+        }
+
+        function isReferralLinkOfficial(link) {
+            return !link || link.startsWith(OFFICIAL_WEB_ORIGIN + '/register.html');
         }
 
         function ensurePromoWidgets() {
@@ -615,8 +636,13 @@
             const reportEl = document.getElementById('selfcheck-report');
             const report = [];
             const dbReady = !!window.MayijuLocalDB;
+            const runtimeOrigin = window.location && window.location.origin ? window.location.origin : '';
+            const referralLink = getStoredReferralLink();
             report.push({ level: dbReady ? 'ok' : 'bad', text: `本地数据库接口: ${dbReady ? '正常' : '缺失'}` });
             report.push({ level: currentUser ? 'ok' : 'bad', text: `当前身份: ${currentUser ? (currentUser.email || currentUser.phone || currentUser.id) : '未识别'}` });
+            report.push({ level: isAllowedRuntimeOrigin(runtimeOrigin) ? 'ok' : 'warn', text: `运行域名: ${runtimeOrigin || '未知'} | 正式域名: ${OFFICIAL_WEB_ORIGIN}` });
+            report.push({ level: isReferralLinkOfficial(referralLink) ? 'ok' : 'warn', text: referralLink ? `推广链接域名: ${referralLink}` : '推广链接尚未写入本地缓存' });
+            report.push({ level: 'ok', text: `API 智能体地址: ${OFFICIAL_API_ORIGIN}` });
             report.push({ level: currentUserData ? 'ok' : 'bad', text: `当前 GAS 余额: ${Number(currentUserData?.balance_g || currentUserData?.gas_balance || 0)}` });
             report.push({ level: citizensData.length ? 'ok' : 'warn', text: `推荐客户数: ${citizensData.length}` });
             report.push({ level: activationCodes.length ? 'ok' : 'warn', text: `赠送激活码数: ${activationCodes.length}` });
@@ -634,6 +660,9 @@
                 generated_at: new Date().toISOString(),
                 report,
                 stats: {
+                    runtime_origin: runtimeOrigin,
+                    official_web_origin: OFFICIAL_WEB_ORIGIN,
+                    official_api_origin: OFFICIAL_API_ORIGIN,
                     gas_balance: Number(currentUserData?.balance_g || currentUserData?.gas_balance || 0),
                     citizen_count: citizensData.length,
                     paid_count: citizensData.filter(c => Number(c.total_donation || 0) >= GIFT_COST).length,

@@ -12,8 +12,15 @@
         'mayiju.profile',
         'aim2m_activation_meta',
         'aim2m_activation_sig',
+        'mayiju_referral_link',
+        'mayiju_referral_flash',
         SELF_CHECK_REPORT_KEY
     ];
+    const OFFICIAL_WEB_ORIGIN = 'https://dushu-cd1.pages.dev';
+    const OFFICIAL_API_ORIGIN = 'https://rome-moss-gained-originally.trycloudflare.com';
+    const DISALLOWED_PUBLIC_HOSTS = new Set([
+        'gels988.github.io'
+    ]);
     const MAX_ROWS_PER_STORE = 5000;
     const MAX_LOCAL_STATE_VALUE_LENGTH = 32768;
     const DANGEROUS_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
@@ -44,7 +51,7 @@
         users: {
             required: ['id'],
             stringFields: ['id', 'email', 'phone_number', 'password_hash', 'referrer_id', 'created_at', 'last_active', 'activated_via', 'last_payment_method', 'last_payment_ref', 'purchase_completed_at'],
-            numberFields: ['balance_g', 'gas_balance', 'total_donation', 'referred_paid_count', 'referral_reward_g'],
+            numberFields: ['balance_g', 'gas_balance', 'total_donation', 'referred_paid_count', 'referral_reward_g', 'free_activation_slots'],
             booleanFields: ['reward_granted_to_referrer', 'is_active', 'is_paid_customer'],
             maxStringLength: 512
         },
@@ -64,7 +71,7 @@
         },
         activation_codes: {
             required: ['id'],
-            stringFields: ['id', 'owner_user_id', 'issued_to_user_id', 'code', 'note', 'status', 'created_at', 'redeemed_at'],
+            stringFields: ['id', 'owner_user_id', 'issued_to_user_id', 'code', 'note', 'status', 'created_at', 'redeemed_at', 'source_type'],
             numberFields: ['cost_g'],
             booleanFields: [],
             maxStringLength: 1024
@@ -73,6 +80,67 @@
 
     function safeParse(str, fallback){
         try{ return JSON.parse(str); }catch{ return fallback; }
+    }
+
+    function safeNumber(value, fallback){
+        const n = Number(value);
+        return Number.isFinite(n) ? n : fallback;
+    }
+
+    function normalizeReferralLink(value){
+        if(!value) return null;
+        try{
+            const parsed = new URL(String(value));
+            const ref = parsed.searchParams.get('ref');
+            if(DISALLOWED_PUBLIC_HOSTS.has(parsed.hostname)){
+                const target = new URL('/register.html', OFFICIAL_WEB_ORIGIN);
+                if(ref) target.searchParams.set('ref', ref);
+                return target.toString();
+            }
+            return parsed.toString();
+        }catch{
+            return null;
+        }
+    }
+
+    function normalizeReferralFlash(value){
+        const payload = safeParse(value, null);
+        if(!payload || typeof payload !== 'object') return null;
+        const normalizedLink = normalizeReferralLink(payload.link);
+        return JSON.stringify(Object.assign({}, payload, {
+            link: normalizedLink || new URL('/register.html', OFFICIAL_WEB_ORIGIN).toString()
+        }));
+    }
+
+    function repairLocalState(report){
+        const repaired = report && Array.isArray(report.repaired) ? report.repaired : [];
+        const warnings = report && Array.isArray(report.warnings) ? report.warnings : [];
+
+        const referralLink = localStorage.getItem('mayiju_referral_link');
+        const normalizedReferralLink = normalizeReferralLink(referralLink);
+        if(referralLink && normalizedReferralLink && normalizedReferralLink !== referralLink){
+            localStorage.setItem('mayiju_referral_link', normalizedReferralLink);
+            repaired.push('local_state:mayiju_referral_link');
+        }
+
+        const referralFlash = localStorage.getItem('mayiju_referral_flash');
+        const normalizedReferralFlash = normalizeReferralFlash(referralFlash);
+        if(referralFlash && normalizedReferralFlash && normalizedReferralFlash !== referralFlash){
+            localStorage.setItem('mayiju_referral_flash', normalizedReferralFlash);
+            repaired.push('local_state:mayiju_referral_flash');
+        }
+
+        const runtimeState = localStorage.getItem(SELF_CHECK_REPORT_KEY);
+        if(runtimeState){
+            const parsed = safeParse(runtimeState, null);
+            if(parsed && typeof parsed === 'object'){
+                parsed.official_web_origin = OFFICIAL_WEB_ORIGIN;
+                parsed.official_api_origin = OFFICIAL_API_ORIGIN;
+                localStorage.setItem(SELF_CHECK_REPORT_KEY, JSON.stringify(parsed));
+            }else{
+                warnings.push('local_state:selfcheck_report_invalid');
+            }
+        }
     }
 
     function uuid(){
@@ -649,6 +717,9 @@
             if(next.gas_balance !== balance){ next.gas_balance = balance; changed = true; }
             if(typeof next.total_donation !== 'number'){ next.total_donation = Number(next.total_donation || 0); changed = true; }
             if(typeof next.referred_paid_count !== 'number'){ next.referred_paid_count = Number(next.referred_paid_count || 0); changed = true; }
+            const unlockedSlots = Math.max(0, Math.floor(Number(next.referred_paid_count || 0) / 3));
+            const currentSlots = safeNumber(next.free_activation_slots, unlockedSlots);
+            if(next.free_activation_slots !== Math.max(currentSlots, unlockedSlots)){ next.free_activation_slots = Math.max(currentSlots, unlockedSlots); changed = true; }
             if(typeof next.reward_granted_to_referrer !== 'boolean'){ next.reward_granted_to_referrer = Boolean(next.reward_granted_to_referrer); changed = true; }
             if(typeof next.is_active !== 'boolean'){ next.is_active = Boolean(next.is_active); changed = true; }
             if(changed){
@@ -691,11 +762,18 @@
                 next.cost_g = Number(next.cost_g || 660);
                 changed = true;
             }
+            const expectedSourceType = next.cost_g === 0 ? 'free_referral_quota' : 'balance_purchase';
+            if(typeof next.source_type !== 'string' || !next.source_type){
+                next.source_type = expectedSourceType;
+                changed = true;
+            }
             if(changed){
                 await putMany('activation_codes', [next]);
                 report.repaired.push(`activation_codes:${next.id}`);
             }
         }
+
+        repairLocalState(report);
 
         if(users.length === 0){
             report.warnings.push('users:empty');
