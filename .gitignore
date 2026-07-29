@@ -1,3 +1,4 @@
 ﻿.env
 .env_backup.txt
 *.env
+node_modules/

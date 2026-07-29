@@ -3,83 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <title>登录 - 独数九宫格</title>
     <style>
-        body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-container { background-color: #1e1e1e; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; }
-        .login-container h2 { margin-bottom: 1.5rem; color: #ffd700; }
-        .form-group { margin-bottom: 1rem; text-align: left; }
-        .form-group label { display: block; margin-bottom: 0.5rem; color: #aaa; }
-        .form-group input { width: 100%; padding: 0.75rem; border: 1px solid #333; border-radius: 6px; background-color: #2a2a2a; color: #fff; box-sizing: border-box; }
-        .login-btn { width: 100%; padding: 0.75rem; background-color: #ffd700; color: #121212; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 1rem; transition: background-color 0.3s; }
-        .login-btn:hover { background-color: #e6c200; }
-        .message { margin-top: 1rem; font-size: 0.9rem; min-height: 1.2em; }
-        .back-link { display: block; margin-top: 1.5rem; color: #888; text-decoration: none; font-size: 0.9rem; }
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .login-box { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); backdrop-filter: blur(10px); width: 90%; max-width: 400px; }
+        .login-box h2 { text-align: center; color: #ffd700; margin-bottom: 30px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; color: #ccc; }
+        .input-group input { width: 100%; padding: 12px; border: none; border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; box-sizing: border-box; }
+        .input-group input:focus { outline: none; background: rgba(255,255,255,0.2); }
+        .login-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #ffd700, #ffed4e); border: none; border-radius: 8px; color: #1a1a2e; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,215,0,0.3); }
+        .message { margin-top: 15px; text-align: center; min-height: 20px; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #888; text-decoration: none; }
         .back-link:hover { color: #ffd700; }
+        .debug-info { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin-top: 20px; font-size: 12px; color: #0f0; }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>🔑 身份验证</h2>
-        <div class="form-group">
-            <label for="login-email">邮箱 / 用户名</label>
-            <input type="text" id="login-email" placeholder="请输入邮箱或用户名">
+    <div class="login-box">
+        <h2>🔐 用户登录</h2>
+        <div class="input-group">
+            <label>用户名/邮箱</label>
+            <input type="text" id="username" placeholder="请输入用户名">
         </div>
-        <div class="form-group">
-            <label for="login-password">密码</label>
-            <input type="password" id="login-password" placeholder="请输入密码">
+        <div class="input-group">
+            <label>密码</label>
+            <input type="password" id="password" placeholder="请输入密码">
         </div>
-        <button id="loginSubmitBtn" class="login-btn">🚀 验证并进入游戏</button>
-        <div id="login-message" class="message"></div>
-        <a href="register.html" class="back-link">← 返回注册页面</a>
+        <button class="login-btn" onclick="doLogin()">🚀 登录进入游戏</button>
+        <div id="msg" class="message"></div>
+        <div id="debug" class="debug-info"></div>
+        <a href="register.html" class="back-link">← 返回注册</a>
     </div>
 
     <script>
-        console.log("✅ login.html 脚本已加载");
-        document.addEventListener('DOMContentLoaded', () => {
-            const submitBtn = document.getElementById('loginSubmitBtn');
-            const messageEl = document.getElementById('login-message');
-
-            submitBtn.addEventListener('click', (e) => {
-                e.preventDefault(); // 彻底阻止任何默认的表单提交行为
-                const email = document.getElementById('login-email').value.trim();
-                const password = document.getElementById('login-password').value;
-
-                if (!email || !password) {
-                    messageEl.textContent = '⚠️ 请输入邮箱和密码';
-                    messageEl.style.color = '#ff4444';
-                    return;
-                }
-
-                messageEl.textContent = '⏳ 验证中...';
-                messageEl.style.color = '#ffd700';
-                console.log("开始模拟验证...");
-
-                try {
-                    const mockUser = { id: 'user_' + Date.now(), email: email, gas_balance: 100 };
-                    // 双重写入，确保无论 index.html 检查哪种存储都能通过
-                    localStorage.setItem('currentUser', JSON.stringify(mockUser));
-                    localStorage.setItem('mayiju.session', JSON.stringify({ userId: mockUser.id, isLoggedIn: true }));
-                    sessionStorage.setItem('currentUser', JSON.stringify(mockUser));
-                    sessionStorage.setItem('mayiju.session', JSON.stringify({ userId: mockUser.id, isLoggedIn: true }));
-                    
-                    console.log("✅ 会话状态已写入 Storage");
-                    messageEl.textContent = '✅ 验证成功，正在进入游戏...';
-                    messageEl.style.color = '#00cc66';
-
-                    setTimeout(() => {
-                        console.log("🚀 执行跳转: index.html");
-                        // 添加时间戳参数，强制浏览器不使用缓存的 index.html
-                        window.location.href = 'index.html?t=' + Date.now();
-                    }, 800);
-
-                } catch (error) {
-                    console.error("❌ 登录异常:", error);
-                    messageEl.textContent = '❌ 验证失败，请重试';
-                    messageEl.style.color = '#ff4444';
-                }
-            });
+        // 调试信息显示
+        document.getElementById('debug').innerHTML = '登录页面已加载<br>准备接受登录...';
+        
+        function doLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const msgDiv = document.getElementById('msg');
+            const debugDiv = document.getElementById('debug');
+            
+            if (!username || !password) {
+                msgDiv.textContent = '⚠️ 请输入用户名和密码';
+                msgDiv.style.color = '#ff6b6b';
+                return;
+            }
+            
+            msgDiv.textContent = ' 正在验证...';
+            msgDiv.style.color = '#ffd700';
+            debugDiv.innerHTML += '<br>开始登录: ' + username;
+            
+            // 创建用户会话
+            const user = {
+                id: 'user_' + Date.now(),
+                username: username,
+                email: username,
+                isLoggedIn: true,
+                loginTime: new Date().toISOString()
+            };
+            
+            // 保存会话到多种存储方式
+            try {
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                localStorage.setItem('user', JSON.stringify(user));
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('username', username);
+                
+                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                sessionStorage.setItem('isLoggedIn', 'true');
+                
+                debugDiv.innerHTML += '<br>✓ 会话已保存';
+                debugDiv.innerHTML += '<br>✓ 准备跳转...';
+                
+                msgDiv.textContent = '✅ 登录成功！正在跳转...';
+                msgDiv.style.color = '#4ecdc4';
+                
+                // 强制跳转到 index.html（带时间戳防止缓存）
+                setTimeout(function() {
+                    debugDiv.innerHTML += '<br>→ 跳转目标: index.html';
+                    window.location.href = 'index.html?login=' + Date.now();
+                }, 1000);
+                
+            } catch (e) {
+                msgDiv.textContent = '❌ 登录失败: ' + e.message;
+                msgDiv.style.color = '#ff6b6b';
+                debugDiv.innerHTML += '<br>✗ 错误: ' + e.message;
+            }
+        }
+        
+        // 支持回车键登录
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') doLogin();
         });
     </script>
 </body>
