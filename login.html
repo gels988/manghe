@@ -3,56 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - 独数九宫格</title>
+    <title>登录</title>
     <style>
-        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .login-box { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); backdrop-filter: blur(10px); width: 90%; max-width: 400px; text-align: center; }
-        .login-box h2 { color: #ffd700; margin-bottom: 30px; }
-        .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 8px; background: rgba(255,255,255,0.2); color: #fff; box-sizing: border-box; }
-        .login-box button { width: 100%; padding: 15px; background: #ffd700; border: none; border-radius: 8px; color: #1a1a2e; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .login-box button:hover { background: #e6c200; }
-        .msg { margin-top: 15px; min-height: 20px; color: #4ecdc4; }
+        body { background: #1a1a2e; color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
+        h2 { color: #ffd700; margin-bottom: 30px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 8px; background: rgba(255,255,255,0.2); color: #fff; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #ffd700; border: none; border-radius: 8px; color: #1a1a2e; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .msg { margin-top: 15px; min-height: 20px; }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <h2>🔐 身份验证</h2>
-        <input type="text" id="user" placeholder="用户名 / 邮箱">
+    <div class="box">
+        <h2>🔐 登录</h2>
+        <input type="text" id="user" placeholder="用户名">
         <input type="password" id="pass" placeholder="密码">
-        <button onclick="doLogin()">🚀 验证并进入游戏</button>
+        <button onclick="login()">登录</button>
         <div id="msg" class="msg"></div>
     </div>
     <script>
-        function doLogin() {
-            const user = document.getElementById('user').value.trim();
+        function login() {
+            const user = document.getElementById('user').value;
             const pass = document.getElementById('pass').value;
             const msg = document.getElementById('msg');
-            
-            if (!user || !pass) {
-                msg.textContent = '⚠️ 请输入用户名和密码';
-                msg.style.color = '#ff6b6b';
-                return;
-            }
-            
-            msg.textContent = '⏳ 验证中...';
-            
-            // 写入标准登录凭证
-            const userData = { id: 'user_' + Date.now(), username: user, email: user, isLoggedIn: true, gas_balance: 100 };
-            localStorage.setItem('currentUser', JSON.stringify(userData));
-            localStorage.setItem('user', JSON.stringify(userData));
+            if (!user || !pass) { msg.textContent = '请输入用户名和密码'; msg.style.color = '#ff6b6b'; return; }
+            msg.textContent = '登录中...'; msg.style.color = '#ffd700';
+            localStorage.setItem('currentUser', JSON.stringify({username: user, isLoggedIn: true}));
             localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('mayiju.session', JSON.stringify({ userId: userData.id, isLoggedIn: true }));
-            sessionStorage.setItem('isLoggedIn', 'true');
-            
-            msg.textContent = '✅ 验证成功，正在进入...';
-            
-            // 稳定跳转至主界面
-            setTimeout(function() {
-                window.location.href = 'index.html';
-            }, 600);
+            setTimeout(function() { window.location.href = 'index.html'; }, 500);
         }
-        // 支持回车键
-        document.addEventListener('keypress', function(e) { if (e.key === 'Enter') doLogin(); });
     </script>
 </body>
 </html>

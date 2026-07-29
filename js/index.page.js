@@ -129,7 +129,7 @@ const STORAGE_KEYS = {
 };
 
 const EXTERNAL_PAGE_MAP = {
-// [AUTO-FIX] Blocked:     register: '../register.html',
+    register: '../register.html',
     donate: '../juanzeng.html',
     growth: '../zixitong.html',
     selfcheck: '../zijian.html'
