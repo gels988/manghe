@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>账号登录 - MAYIJU</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.12) 0, transparent 45%), linear-gradient(160deg, #03030b 0%, #050018 45%, #020007 100%); color: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: rgba(0, 0, 0, 0.8); padding: 2.4rem 2rem; border-radius: 18px; box-shadow: 0 0 35px rgba(255, 0, 80, 0.45); width: 90%; max-width: 420px; text-align: center; border: 1px solid rgba(255, 0, 80, 0.55); }
+        h1 { font-size: 1.6rem; margin-bottom: 1.5rem; color: #ff4b4b; }
+        input { width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid rgba(255, 80, 80, 0.75); margin-bottom: 1rem; box-sizing: border-box; background: rgba(3, 3, 10, 0.95); color: #ffeaea; }
+        button { width: 100%; padding: 1rem; background: linear-gradient(135deg, #ff1744 0%, #ff6d00 100%); color: #fff; border: none; border-radius: 999px; font-size: 1.05rem; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 身份验证</h1>
+        <input type="text" id="login-account" placeholder="输入账号">
+        <input type="password" id="login-password" placeholder="输入密码">
+        <button type="button" id="loginSubmitBtn">🚀 验证并进入游戏</button>
+    </div>
+    <script>
+        document.getElementById('loginSubmitBtn').addEventListener('click', function() {
+            var acc = document.getElementById('login-account').value;
+            var pwd = document.getElementById('login-password').value;
+            if(acc === "" || pwd === "") { alert("⚠️ 请输入账号密码！"); return; }
+            alert("✅ 授权通过！正在进入九宫格...");
+            window.location.href = "index.html";
+        });
+    </script>
+</body>
+</html>

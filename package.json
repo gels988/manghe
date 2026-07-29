@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "serve": "node static-server.mjs",
+    "signal": "node signaling-server.mjs",
+    "gateway": "node gateway-server.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.21.0"
+  }
+}
