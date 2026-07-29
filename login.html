@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <title>登录 - 独数九宫格</title>
     <style>
         body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
@@ -35,40 +36,47 @@
     </div>
 
     <script>
+        console.log("✅ login.html 脚本已加载");
         document.addEventListener('DOMContentLoaded', () => {
             const submitBtn = document.getElementById('loginSubmitBtn');
             const messageEl = document.getElementById('login-message');
 
-            submitBtn.addEventListener('click', async () => {
+            submitBtn.addEventListener('click', (e) => {
+                e.preventDefault(); // 彻底阻止任何默认的表单提交行为
                 const email = document.getElementById('login-email').value.trim();
                 const password = document.getElementById('login-password').value;
 
                 if (!email || !password) {
-                    messageEl.textContent = '请输入邮箱和密码';
+                    messageEl.textContent = '⚠️ 请输入邮箱和密码';
                     messageEl.style.color = '#ff4444';
                     return;
                 }
 
-                messageEl.textContent = '验证中...';
+                messageEl.textContent = '⏳ 验证中...';
                 messageEl.style.color = '#ffd700';
+                console.log("开始模拟验证...");
 
                 try {
-                    // 模拟登录验证并保存会话状态
                     const mockUser = { id: 'user_' + Date.now(), email: email, gas_balance: 100 };
+                    // 双重写入，确保无论 index.html 检查哪种存储都能通过
                     localStorage.setItem('currentUser', JSON.stringify(mockUser));
-                    localStorage.setItem('mayiju.session', JSON.stringify({ userId: mockUser.id }));
-
-                    messageEl.textContent = '验证成功，正在进入游戏...';
+                    localStorage.setItem('mayiju.session', JSON.stringify({ userId: mockUser.id, isLoggedIn: true }));
+                    sessionStorage.setItem('currentUser', JSON.stringify(mockUser));
+                    sessionStorage.setItem('mayiju.session', JSON.stringify({ userId: mockUser.id, isLoggedIn: true }));
+                    
+                    console.log("✅ 会话状态已写入 Storage");
+                    messageEl.textContent = '✅ 验证成功，正在进入游戏...';
                     messageEl.style.color = '#00cc66';
 
-                    // 延迟 1 秒后跳转至游戏主画面 (index.html)
                     setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1000);
+                        console.log("🚀 执行跳转: index.html");
+                        // 添加时间戳参数，强制浏览器不使用缓存的 index.html
+                        window.location.href = 'index.html?t=' + Date.now();
+                    }, 800);
 
                 } catch (error) {
-                    console.error(error);
-                    messageEl.textContent = '验证失败，请检查账号密码';
+                    console.error("❌ 登录异常:", error);
+                    messageEl.textContent = '❌ 验证失败，请重试';
                     messageEl.style.color = '#ff4444';
                 }
             });
