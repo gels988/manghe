@@ -1,4 +1,4 @@
-        const supabaseClient = window.supabaseInstance;
+﻿        const supabaseClient = window.supabaseInstance;
         const SYSTEM_PRICE = 660;
         const REFERRAL_REWARD = 222;
         const GIFT_SECRET = 'MAYIJU_GIFT_660_V1';
@@ -168,7 +168,7 @@
 
         function buildOwnReferralLink(userId) {
             if (!userId) return '';
-            const url = new URL('register.html', window.location.href);
+// [AUTO-BLOCK]             const url = new URL('register.html', window.location.href);
             url.searchParams.set('ref', String(userId));
             return url.toString();
         }
@@ -666,4 +666,5 @@
             }, 100);
         };
     
+
 

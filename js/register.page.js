@@ -1,4 +1,4 @@
-        let inviteReferrerId = null;
+﻿        let inviteReferrerId = null;
         const OWN_REFERRAL_LINK_KEY = 'mayiju_referral_link';
         const OWN_REFERRAL_FLASH_KEY = 'mayiju_referral_flash';
         // #region debug-point B:register-runtime
@@ -40,7 +40,7 @@
 
         function buildOwnReferralLink(userId) {
             if (!userId) return '';
-            const url = new URL('register.html', window.location.href);
+// [AUTO-BLOCK]             const url = new URL('register.html', window.location.href);
             url.searchParams.set('ref', String(userId));
             return url.toString();
         }
@@ -235,3 +235,4 @@
             }
         });
     
+

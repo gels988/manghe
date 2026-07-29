@@ -1,4 +1,4 @@
-        const supabase = window.supabaseInstance;
+﻿        const supabase = window.supabaseInstance;
         const REFERRAL_REWARD = 222;
         const GIFT_COST = 660;
         const GIFT_SECRET = 'MAYIJU_GIFT_660_V1';
@@ -310,7 +310,7 @@
             if (!displayElement) return;
 
             const ownerId = currentUser && currentUser.id ? currentUser.id : 'USER_LOCAL';
-            const url = new URL('register.html', window.location.href);
+// [AUTO-BLOCK]             const url = new URL('register.html', window.location.href);
             url.searchParams.set('ref', String(ownerId));
             const link = url.toString();
             displayElement.textContent = link;
@@ -981,4 +981,5 @@
         });
         window.onload = init;
     
+
 

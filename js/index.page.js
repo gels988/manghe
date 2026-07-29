@@ -758,7 +758,7 @@ function renderRegister(){
         <div class="panel-section">
             <div class="panel-section-title">${t('register.title')}</div>
             <div style="font-size:12px;color:#636e72;margin-bottom:10px;">${t('register.desc')}</div>
-            <input class="text-input" id="regName" type="text" value="${(profile && profile.name) ? String(profile.name).replace(/"/g,'&quot;') : ''}" placeholder="${t('register.name')}"/>
+// [AUTO-BLOCK]             <input class="text-input" id="regName" type="text" value="${(profile && profile.name) ? String(profile.name).replace(/"/g,'&quot;') : ''}" placeholder="${t('register.name')}"/>
             <div style="margin-top:10px;" class="btn-row">
                 <button class="btn" type="button" id="regSave">${t('register.save')}</button>
             </div>
