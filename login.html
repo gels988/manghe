@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录</title>
+    <title>登录 - 独数九宫格</title>
     <style>
         body { background: #1a1a2e; color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .box { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
@@ -15,10 +15,10 @@
 </head>
 <body>
     <div class="box">
-        <h2>🔐 登录</h2>
-        <input type="text" id="user" placeholder="用户名">
+        <h2>🔐 身份验证</h2>
+        <input type="text" id="user" placeholder="用户名 / 邮箱">
         <input type="password" id="pass" placeholder="密码">
-        <button onclick="login()">登录</button>
+        <button onclick="login()">🚀 验证并进入系统</button>
         <div id="msg" class="msg"></div>
     </div>
     <script>
@@ -27,10 +27,15 @@
             const pass = document.getElementById('pass').value;
             const msg = document.getElementById('msg');
             if (!user || !pass) { msg.textContent = '请输入用户名和密码'; msg.style.color = '#ff6b6b'; return; }
-            msg.textContent = '登录中...'; msg.style.color = '#ffd700';
+            msg.textContent = '验证中...'; msg.style.color = '#ffd700';
+            
             localStorage.setItem('currentUser', JSON.stringify({username: user, isLoggedIn: true}));
             localStorage.setItem('isLoggedIn', 'true');
-            setTimeout(function() { window.location.href = 'index.html'; }, 500);
+            
+            setTimeout(function() {
+                // 跳转到备用主界面，绕过加密的 index.html
+                window.location.href = 'game_main.html';
+            }, 600);
         }
     </script>
 </body>
