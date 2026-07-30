@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -22,20 +22,46 @@
         <div id="msg" class="msg"></div>
     </div>
     <script>
-        function login() {
-            const user = document.getElementById('user').value;
-            const pass = document.getElementById('pass').value;
+        function safeParse(str) {
+            try { return JSON.parse(str); } catch { return null; }
+        }
+
+        function normalizeLoginTarget(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return 'index.html';
+            if (/^game_main\.html$/i.test(raw)) return 'index.html';
+            return raw;
+        }
+
+        async function resolveLoginTarget() {
+            const override = normalizeLoginTarget(localStorage.getItem('mayiju_login_target'));
+            try {
+                const resp = await fetch(override, { method: 'HEAD', cache: 'no-store' });
+                if (resp && resp.ok) return override;
+            } catch (e) {}
+            return 'index.html';
+        }
+
+        async function login() {
+            const user = String(document.getElementById('user').value || '').trim();
+            const pass = String(document.getElementById('pass').value || '').trim();
             const msg = document.getElementById('msg');
             if (!user || !pass) { msg.textContent = '请输入用户名和密码'; msg.style.color = '#ff6b6b'; return; }
             msg.textContent = '验证中...'; msg.style.color = '#ffd700';
-            
-            localStorage.setItem('currentUser', JSON.stringify({username: user, isLoggedIn: true}));
+
+            const existing = safeParse(localStorage.getItem('currentUser')) || {};
+            const merged = Object.assign({}, existing, {
+                username: user,
+                isLoggedIn: true
+            });
+            localStorage.setItem('currentUser', JSON.stringify(merged));
             localStorage.setItem('isLoggedIn', 'true');
-            
+            localStorage.setItem('mayiju_login_target', 'index.html');
+
+            const target = await resolveLoginTarget();
             setTimeout(function() {
-                // 跳转到备用主界面，绕过加密的 index.html
-                window.location.href = 'game_main.html';
-            }, 600);
+                window.location.href = target;
+            }, 260);
         }
     </script>
 </body>

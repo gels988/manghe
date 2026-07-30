@@ -14,6 +14,7 @@
         'aim2m_activation_sig',
         'mayiju_referral_link',
         'mayiju_referral_flash',
+        'mayiju_login_target',
         SELF_CHECK_REPORT_KEY
     ];
     const OFFICIAL_WEB_ORIGIN = 'https://dushu-cd1.pages.dev';
@@ -115,6 +116,12 @@
     function repairLocalState(report){
         const repaired = report && Array.isArray(report.repaired) ? report.repaired : [];
         const warnings = report && Array.isArray(report.warnings) ? report.warnings : [];
+
+        const loginTarget = localStorage.getItem('mayiju_login_target');
+        if(!loginTarget || /^game_main\.html$/i.test(String(loginTarget || '').trim())){
+            localStorage.setItem('mayiju_login_target', 'index.html');
+            repaired.push('local_state:mayiju_login_target');
+        }
 
         const referralLink = localStorage.getItem('mayiju_referral_link');
         const normalizedReferralLink = normalizeReferralLink(referralLink);

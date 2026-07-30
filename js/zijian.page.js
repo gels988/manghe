@@ -608,14 +608,17 @@
 
       const currentOrigin = window.location && window.location.origin ? window.location.origin : '';
       const referralLink = getReferralLinkState();
+      const loginTarget = String(localStorage.getItem('mayiju_login_target') || '').trim();
       const referralOk = !referralLink || referralLink.startsWith(OFFICIAL_WEB_ORIGIN + '/register.html');
+      const loginOk = !loginTarget || /^index\.html$/i.test(loginTarget);
       const runtimeOk = isOfficialRuntimeOrigin(currentOrigin);
-      const allPass = runtimeOk && referralOk;
+      const allPass = runtimeOk && referralOk && loginOk;
       const details = [
         `运行域名: ${currentOrigin || '未知'}`,
         `正式域名: ${OFFICIAL_WEB_ORIGIN}`,
         `API 地址: ${OFFICIAL_API_ORIGIN}`,
-        `推广链接: ${referralLink || '未缓存'}`
+        `推广链接: ${referralLink || '未缓存'}`,
+        `登录跳转: ${loginTarget || '未设置'}`
       ].join(' | ');
 
       if (allPass) {
@@ -634,6 +637,12 @@
       showFixLog('正在校正正式域名与推广链接...');
 
       try {
+        const loginTarget = String(localStorage.getItem('mayiju_login_target') || '').trim();
+        if (!loginTarget || /^game_main\.html$/i.test(loginTarget) || !/^index\.html$/i.test(loginTarget)) {
+          localStorage.setItem('mayiju_login_target', 'index.html');
+          showFixLog('✅ 已校正登录跳转目标为 index.html');
+        }
+
         const referralLink = getReferralLinkState();
         const normalizedReferral = normalizeOfficialReferralLink(referralLink);
         if (referralLink && normalizedReferral && normalizedReferral !== referralLink) {
