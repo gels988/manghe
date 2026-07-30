@@ -131,8 +131,8 @@ const STORAGE_KEYS = {
 const EXTERNAL_PAGE_MAP = {
     register: '../register.html',
     donate: '../juanzeng.html',
-    growth: '../zixitong.html',
-    selfcheck: '../zijian.html'
+    growth: '../growth.html',
+    selfcheck: '../check.html'
 };
 
 const KEYGEN_CORE_SALT = "AIM2M_GOD_MODE_99";
