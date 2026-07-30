@@ -1,7 +1,7 @@
-﻿        const supabaseClient = window.supabaseInstance;
-        const SYSTEM_PRICE = 660;
-        const REFERRAL_REWARD = 222;
-        const GIFT_SECRET = 'MAYIJU_GIFT_660_V1';
+        const supabaseClient = window.supabaseInstance;
+        const SYSTEM_PRICE = 98;
+        const REFERRAL_REWARD = 33;
+        const GIFT_SECRET = 'MAYIJU_GIFT_98_V1';
         const OWN_REFERRAL_LINK_KEY = 'mayiju_referral_link';
         const OWN_REFERRAL_FLASH_KEY = 'mayiju_referral_flash';
 
@@ -402,7 +402,7 @@
             await finalizePaidActivation({
                 amount: SYSTEM_PRICE,
                 method: 'offline_manual',
-                proof: 'OFFLINE-660-MANUAL'
+                proof: 'OFFLINE-98-MANUAL'
             });
         }
 
@@ -519,7 +519,7 @@
                 document.getElementById('tx-hash').value = '';
                 document.getElementById('donation-amount').value = String(SYSTEM_PRICE);
                 refreshEstimate();
-                showNotification('已完成开通；若存在推荐人，系统已自动为上级结算 222G', 'success');
+                showNotification('已完成开通；若存在推荐人，系统已自动为上级结算 33G', 'success');
                 setTimeout(() => { window.location.href = 'index.html/index.html'; }, 900);
             } catch (e) {
                 console.error(e);

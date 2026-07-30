@@ -752,8 +752,8 @@ const STORAGE_KEYS = {
 const EXTERNAL_PAGE_MAP = {
     register: '../register.html',
     donate: '../juanzeng.html',
-    growth: '../zixitong.html',
-    selfcheck: '../zijian.html'
+    growth: '../growth.html',
+    selfcheck: '../check.html'
 };
 
 const KEYGEN_CORE_SALT = "AIM2M_GOD_MODE_99";
@@ -780,7 +780,7 @@ const I18N = {
         lang: { title: "语言切换", desc: "实时切换界面语言（中/英/日/韩）。", current: "当前语言", zh: "中文", en: "English", ja: "日本語", ko: "한국어" },
         donate: {
             title: "捐赠激活",
-            desc: "捐赠 $660 可激活系统（离线模式无法自动验证支付，仅在本机记录）。",
+            desc: "捐赠 $98 可激活系统（离线模式无法自动验证支付，仅在本机记录）。",
             usdt: "USDT 地址",
             paypal: "PayPal.Me",
             f8618: "收款号 f8618",
@@ -789,7 +789,7 @@ const I18N = {
         },
         growth: {
             title: "自我繁殖",
-            desc: "每成功邀请 1 人，本地积分 +222；累计 3 人可解锁免费开通权（仅本机统计）。",
+            desc: "每成功邀请 1 人，本地积分 +33；累计 3 人可解锁免费开通权（仅本机统计）。",
             points: "本地积分",
             genLink: "生成邀请链接",
             claim: "兑换回执",
@@ -841,7 +841,7 @@ const I18N = {
         lang: { title: "Language", desc: "Switch UI language (ZH/EN/JA/KO).", current: "Current", zh: "Chinese", en: "English", ja: "Japanese", ko: "Korean" },
         donate: {
             title: "Donation Activation",
-            desc: "Donate $660 to activate (offline mode cannot verify payment; recorded locally).",
+            desc: "Donate $98 to activate (offline mode cannot verify payment; recorded locally).",
             usdt: "USDT Address",
             paypal: "PayPal.Me",
             f8618: "Receiver f8618",
@@ -850,7 +850,7 @@ const I18N = {
         },
         growth: {
             title: "Self Growth",
-            desc: "Each successful invite: +222 local points; 3 invites unlock free access (local only).",
+            desc: "Each successful invite: +33 local points; 3 invites unlock free access (local only).",
             points: "Local points",
             genLink: "Generate invite link",
             claim: "Redeem token",
@@ -902,7 +902,7 @@ const I18N = {
         lang: { title: "言語切替", desc: "UI 言語を即時切替（中/英/日/韓）。", current: "現在", zh: "中文", en: "English", ja: "日本語", ko: "한국어" },
         donate: {
             title: "寄付で有効化",
-            desc: "$660 の寄付で有効化（オフラインのため支払い検証不可、ローカル記録）。",
+            desc: "$98 の寄付で有効化（オフラインのため支払い検証不可、ローカル記録）。",
             usdt: "USDT アドレス",
             paypal: "PayPal.Me",
             f8618: "受取 f8618",
@@ -911,7 +911,7 @@ const I18N = {
         },
         growth: {
             title: "自己増殖",
-            desc: "招待 1 人ごとに +222 ローカルポイント；3 人で無料開通（ローカルのみ）。",
+            desc: "招待 1 人ごとに +33 ローカルポイント；3 人で無料開通（ローカルのみ）。",
             points: "ローカルポイント",
             genLink: "招待リンク生成",
             claim: "トークン交換",
@@ -963,7 +963,7 @@ const I18N = {
         lang: { title: "언어 전환", desc: "UI 언어 즉시 전환(중/영/일/한).", current: "현재", zh: "中文", en: "English", ja: "日本語", ko: "한국어" },
         donate: {
             title: "후원 활성화",
-            desc: "$660 후원 시 활성화(오프라인으로 결제 검증 불가, 로컬 기록).",
+            desc: "$98 후원 시 활성화(오프라인으로 결제 검증 불가, 로컬 기록).",
             usdt: "USDT 주소",
             paypal: "PayPal.Me",
             f8618: "수취 f8618",
@@ -972,7 +972,7 @@ const I18N = {
         },
         growth: {
             title: "자가 번식",
-            desc: "초대 1명당 +222 로컬 포인트; 3명 시 무료 개통(로컬 전용).",
+            desc: "초대 1명당 +33 로컬 포인트; 3명 시 무료 개통(로컬 전용).",
             points: "로컬 포인트",
             genLink: "초대 링크 생성",
             claim: "토큰 교환",
@@ -1297,7 +1297,7 @@ function markInviteTokenUsed(token){
 
 function maybeUnlockFree(){
     const pts = getPoints();
-    if(pts >= 666){
+    if(pts >= 99){
         const pool = getExperiencePool();
         const exists = pool.some(x => x && x.tag === 'FREE');
         if(!exists){
@@ -1456,7 +1456,7 @@ function renderGrowth(){
             <div style="font-size:12px;color:#636e72;margin-bottom:10px;">${t('growth.desc')}</div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
                 <span class="pill">${t('growth.points')}：<b>${points}</b></span>
-                ${points >= 666 ? `<span class="pill ok">FREE ✓</span>` : `<span class="pill">FREE ${Math.floor(points/222)}/3</span>`}
+                ${points >= 99 ? `<span class="pill ok">FREE ✓</span>` : `<span class="pill">FREE ${Math.floor(points/33)}/3</span>`}
             </div>
             <div class="panel-section-title">${t('growth.genLink')}</div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
@@ -1508,7 +1508,7 @@ function renderGrowth(){
             return;
         }
         markInviteTokenUsed(token);
-        setPoints(getPoints() + 222);
+        setPoints(getPoints() + 33);
         maybeUnlockFree();
         renderPanel('growth');
     });

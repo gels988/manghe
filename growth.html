@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>独数九宫格 - 推广中心</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: #e0e0e0; margin: 0; padding: 22px; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.35); }
+    h1 { color: #00e5ff; margin: 6px 0 10px; font-size: 1.9em; }
+    .sub { opacity: 0.75; margin-bottom: 14px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 12px 0; }
+    .kpi { background: rgba(0,0,0,0.25); border-radius: 12px; padding: 14px; border-left: 3px solid #00e5ff; }
+    .kpi .v { font-size: 1.6em; font-weight: 700; color: #00e676; margin-top: 6px; }
+    .line { background: rgba(0,0,0,0.25); border-radius: 12px; padding: 14px; border-left: 3px solid #00e5ff; margin-top: 12px; }
+    .mono { font-family: Consolas, monospace; word-break: break-all; white-space: pre-wrap; }
+    .btns { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { background: linear-gradient(45deg, #00e5ff, #00b0ff); color: #000; font-weight: 700; border: none; padding: 10px 16px; border-radius: 999px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn.secondary { background: rgba(255,255,255,0.12); color: #e0e0e0; border: 1px solid rgba(255,255,255,0.18); }
+    .msg { margin-top: 10px; min-height: 20px; opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>推广中心</h1>
+      <div class="sub">规则：捐赠 98U 开通；每成交 1 人奖励 33 积分；成交 3 人获得 1 个免费开通名额</div>
+
+      <div class="row">
+        <div class="kpi"><div>我的积分</div><div class="v" id="kpiPoints">0</div></div>
+        <div class="kpi"><div>成交人数</div><div class="v" id="kpiPaid">0</div></div>
+        <div class="kpi"><div>免费名额</div><div class="v" id="kpiFree">0</div></div>
+      </div>
+
+      <div class="line">
+        <div>我的推广链接</div>
+        <div class="mono" id="promoLink">未登录</div>
+        <div class="btns">
+          <button class="btn" id="copyBtn" type="button">复制链接</button>
+          <a class="btn secondary" href="/index.html">返回主界面</a>
+          <a class="btn secondary" href="/juanzeng.html">去捐赠开通</a>
+        </div>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/db_client.js"></script>
+  <script src="js/shared_identity.js"></script>
+  <script>
+    const OFFICIAL = 'https://dushu-cd1.pages.dev';
+
+    function safeParse(str) { try { return JSON.parse(str); } catch { return null; } }
+
+    async function getCurrentUserId() {
+      if (window.MayijuIdentity) {
+        const profile = await window.MayijuIdentity.syncProfile({ device: 'desktop' });
+        if (profile && profile.id) return String(profile.id);
+      }
+      const currentUser = safeParse(localStorage.getItem('currentUser'));
+      if (currentUser && currentUser.id) return String(currentUser.id);
+      return '';
+    }
+
+    function setMsg(text, ok) {
+      const el = document.getElementById('msg');
+      el.textContent = String(text || '');
+      el.style.color = ok ? '#00e676' : '#ff6b6b';
+    }
+
+    async function loadStats(userId) {
+      const supabase = window.supabaseInstance;
+      if (!supabase) return { points: 0, paid: 0, free: 0 };
+      const res = await supabase.from('users').select('*').eq('id', userId).maybeSingle();
+      const row = res && res.data ? res.data : {};
+      return {
+        points: Number(row.balance_g || row.gas_balance || 0),
+        paid: Number(row.referred_paid_count || 0),
+        free: Number(row.free_activation_slots || 0)
+      };
+    }
+
+    async function init() {
+      const userId = await getCurrentUserId();
+      if (!userId) {
+        setMsg('未找到登录身份，请先注册/登录', false);
+        return;
+      }
+      const link = `${OFFICIAL}/register.html?ref=${encodeURIComponent(userId)}`;
+      document.getElementById('promoLink').textContent = link;
+      document.getElementById('promoLink').dataset.link = link;
+      const stats = await loadStats(userId);
+      document.getElementById('kpiPoints').textContent = String(stats.points);
+      document.getElementById('kpiPaid').textContent = String(stats.paid);
+      document.getElementById('kpiFree').textContent = String(stats.free);
+      setMsg('就绪', true);
+    }
+
+    document.getElementById('copyBtn').addEventListener('click', async function() {
+      const link = document.getElementById('promoLink').dataset.link || '';
+      if (!link) { setMsg('暂无可复制链接', false); return; }
+      try {
+        await navigator.clipboard.writeText(link);
+        setMsg('已复制', true);
+      } catch (e) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = link;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          setMsg('已复制', true);
+        } catch (err) {
+          setMsg('复制失败', false);
+        }
+      }
+    });
+
+    init().catch(()=> setMsg('加载失败', false));
+  </script>
+</body>
+</html>

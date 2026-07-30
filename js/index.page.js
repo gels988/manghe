@@ -1,4 +1,4 @@
-﻿// ==========================================
+// ==========================================
 // 当前频道
 // ==========================================
 
@@ -168,7 +168,7 @@ const I18N = {
         lang: { title: "语言切换", desc: "实时切换界面语言（中/英/日/韩）。", current: "当前语言", zh: "中文", en: "English", ja: "日本語", ko: "한국어" },
         donate: {
             title: "捐赠激活",
-            desc: "捐赠 $660 可激活系统（离线模式无法自动验证支付，仅在本机记录）。",
+            desc: "捐赠 $98 可激活系统（离线模式无法自动验证支付，仅在本机记录）。",
             usdt: "USDT 地址",
             paypal: "PayPal.Me",
             f8618: "收款号 f8618",
@@ -177,7 +177,7 @@ const I18N = {
         },
         growth: {
             title: "自我繁殖",
-            desc: "每成功邀请 1 人，本地积分 +222；累计 3 人可解锁免费开通权（仅本机统计）。",
+            desc: "每成功邀请 1 人，本地积分 +33；累计 3 人可解锁免费开通权（仅本机统计）。",
             points: "本地积分",
             genLink: "生成邀请链接",
             claim: "兑换回执",
@@ -229,7 +229,7 @@ const I18N = {
         lang: { title: "Language", desc: "Switch UI language (ZH/EN/JA/KO).", current: "Current", zh: "Chinese", en: "English", ja: "Japanese", ko: "Korean" },
         donate: {
             title: "Donation Activation",
-            desc: "Donate $660 to activate (offline mode cannot verify payment; recorded locally).",
+            desc: "Donate $98 to activate (offline mode cannot verify payment; recorded locally).",
             usdt: "USDT Address",
             paypal: "PayPal.Me",
             f8618: "Receiver f8618",
@@ -238,7 +238,7 @@ const I18N = {
         },
         growth: {
             title: "Self Growth",
-            desc: "Each successful invite: +222 local points; 3 invites unlock free access (local only).",
+            desc: "Each successful invite: +33 local points; 3 invites unlock free access (local only).",
             points: "Local points",
             genLink: "Generate invite link",
             claim: "Redeem token",
@@ -288,7 +288,7 @@ const I18N = {
         panels: { register: "Register", lang: "Language", donate: "Donate", growth: "Subsystem", selfcheck: "Self-check", admin: "Admin" },
         register: { title: "Local Register", desc: "Stored only in your browser (no cloud).", name: "Nickname/ID", save: "Save", saved: "Saved" },
         lang: { title: "Language", desc: "Switch UI language.", current: "Current", zh: "Chinese", en: "English", ja: "Japanese", ko: "Korean" },
-        donate: { title: "Donation Activation", desc: "Donate $660 to activate.", usdt: "USDT Address", paypal: "PayPal.Me", f8618: "Receiver f8618", iPaid: "I have donated & activate", copy: "Copy" },
+        donate: { title: "Donation Activation", desc: "Donate $98 to activate.", usdt: "USDT Address", paypal: "PayPal.Me", f8618: "Receiver f8618", iPaid: "I have donated & activate", copy: "Copy" },
         growth: { title: "Self Growth", desc: "Each invite adds local points.", points: "Local points", genLink: "Generate invite link", claim: "Redeem token", tokenPlaceholder: "Paste receipt token", claimBtn: "Redeem", download: "Download source" },
         selfcheck: { title: "Security Self-check", desc: "Check channel capability and salt sync.", run: "Run check", ok: "Secure channel established", notReady: "Channel not ready" },
         admin: { title: "Activation & Pool", desc: "Redeem admin/trial codes.", wsUrl: "Signaling WS URL", name: "Target name", code: "Activation code", redeem: "Redeem", saveWs: "Save WS", gen: "Generate trial codes", count: "Count", export: "Export pool", clear: "Clear pool", unlocked: "Admin entry unlocked" },
@@ -313,7 +313,7 @@ const I18N = {
         panels: { register: "Register", lang: "Language", donate: "Donate", growth: "Subsystem", selfcheck: "Self-check", admin: "Admin" },
         register: { title: "Local Register", desc: "Stored only in your browser (no cloud).", name: "Nickname/ID", save: "Save", saved: "Saved" },
         lang: { title: "Language", desc: "Switch UI language.", current: "Current", zh: "Chinese", en: "English", ja: "Japanese", ko: "Korean" },
-        donate: { title: "Donation Activation", desc: "Donate $660 to activate.", usdt: "USDT Address", paypal: "PayPal.Me", f8618: "Receiver f8618", iPaid: "I have donated & activate", copy: "Copy" },
+        donate: { title: "Donation Activation", desc: "Donate $98 to activate.", usdt: "USDT Address", paypal: "PayPal.Me", f8618: "Receiver f8618", iPaid: "I have donated & activate", copy: "Copy" },
         growth: { title: "Self Growth", desc: "Each invite adds local points.", points: "Local points", genLink: "Generate invite link", claim: "Redeem token", tokenPlaceholder: "Paste receipt token", claimBtn: "Redeem", download: "Download source" },
         selfcheck: { title: "Security Self-check", desc: "Check channel capability and salt sync.", run: "Run check", ok: "Secure channel established", notReady: "Channel not ready" },
         admin: { title: "Activation & Pool", desc: "Redeem admin/trial codes.", wsUrl: "Signaling WS URL", name: "Target name", code: "Activation code", redeem: "Redeem", saveWs: "Save WS", gen: "Generate trial codes", count: "Count", export: "Export pool", clear: "Clear pool", unlocked: "Admin entry unlocked" },
@@ -700,7 +700,7 @@ function markInviteTokenUsed(token){
 
 function maybeUnlockFree(){
     const pts = getPoints();
-    if(pts >= 666){
+    if(pts >= 99){
         const pool = getExperiencePool();
         const exists = pool.some(x => x && x.tag === 'FREE');
         if(!exists){
@@ -859,7 +859,7 @@ function renderGrowth(){
             <div style="font-size:12px;color:#636e72;margin-bottom:10px;">${t('growth.desc')}</div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
                 <span class="pill">${t('growth.points')}：${points}</span>
-                ${points >= 666 ? `<span class="pill ok">FREE OK</span>` : `<span class="pill">FREE ${Math.floor(points/222)}/3</span>`}
+                ${points >= 99 ? `<span class="pill ok">FREE OK</span>` : `<span class="pill">FREE ${Math.floor(points/33)}/3</span>`}
             </div>
             <div class="panel-section-title">${t('growth.genLink')}</div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
@@ -911,7 +911,7 @@ function renderGrowth(){
             return;
         }
         markInviteTokenUsed(token);
-        setPoints(getPoints() + 222);
+        setPoints(getPoints() + 33);
         maybeUnlockFree();
         renderPanel('growth');
     });

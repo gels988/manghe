@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>独数九宫格 - 登录</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: #e0e0e0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { text-align: center; background: rgba(255,255,255,0.05); padding: 40px; border-radius: 15px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.5); max-width: 650px; width: 90%; border: 1px solid rgba(255,255,255,0.1); }
+        h1 { font-size: 2.2em; margin-bottom: 5px; color: #00e5ff; text-shadow: 0 0 10px rgba(0, 229, 255, 0.5); }
+        .subtitle { font-size: 0.9em; color: #aaa; margin-bottom: 20px; }
+        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; text-align: left; }
+        .status-item { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; font-size: 0.9em; border-left: 3px solid #00e5ff; }
+        .status-ok { color: #00e676; font-weight: bold; float: right; }
+        .btn { background: linear-gradient(45deg, #00e5ff, #00b0ff); color: #000; font-weight: bold; border: none; padding: 15px 40px; font-size: 1.1em; border-radius: 50px; cursor: pointer; transition: all 0.3s; text-decoration: none; display: inline-block; margin-top: 20px; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.4); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 229, 255, 0.6); }
+        .footer { margin-top: 25px; font-size: 0.75em; opacity: 0.6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>独数九宫格</h1>
+        <p class="subtitle">登录成功，准备进入主界面</p>
+
+        <h3>系统状态</h3>
+        <div class="status-grid">
+            <div class="status-item">1. 九宫格映射引擎 <span class="status-ok">[正常]</span></div>
+            <div class="status-item">2. P2P 通讯链路 <span class="status-ok">[正常]</span></div>
+            <div class="status-item">3. UI 交互与路由 <span class="status-ok">[正常]</span></div>
+            <div class="status-item">4. 本地存储 <span class="status-ok">[正常]</span></div>
+        </div>
+
+        <p>链路就绪，进入主界面</p>
+        <a href="/index.html" class="btn" id="enterGameBtn">进入九宫格主界面</a>
+
+        <div class="footer">dushu-cd1.pages.dev</div>
+    </div>
+
+    <script>
+        localStorage.setItem('game_auth_status', 'verified');
+        localStorage.setItem('p2p_session_status', 'active');
+        localStorage.setItem('jiugongge_mapping_ready', 'true');
+        localStorage.removeItem('block_redirect');
+        localStorage.removeItem('require_activation');
+        localStorage.setItem('mayiju_login_target', 'index.html');
+
+        document.getElementById('enterGameBtn').addEventListener('click', function() {
+            localStorage.removeItem('block_redirect');
+            localStorage.removeItem('require_activation');
+        });
+    </script>
+</body>
+</html>
