@@ -269,7 +269,7 @@
             if (openBtn && !openBtn.dataset.bound) {
                 openBtn.dataset.bound = '1';
                 openBtn.addEventListener('click', () => {
-                    window.location.href = 'zixitong.html';
+                    window.location.href = 'growth.html';
                 });
             }
         }
@@ -335,7 +335,7 @@
                 metaEl.textContent =
                     `${showNewLink ? '你的专属推广链接已生成。\n' : ''}` +
                     `累计登记 ${overview.totalReferrals} 人，已完成付费激活 ${overview.paidReferralCount} 人。\n` +
-                    `每位付费推广奖励 ${REFERRAL_REWARD} G；每满 3 人解锁 1 个免费激活名额。\n` +
+                    `每位付费推广仅给推荐人奖励 ${REFERRAL_REWARD} G；购买者自己的 G-Gas 保持 0。每满 3 人解锁 1 个免费激活名额。\n` +
                     `当前可用免费名额 ${overview.availableFreeSlots} 个` +
                     (overview.nextUnlockNeed > 0 ? `，再完成 ${overview.nextUnlockNeed} 人可再解锁 1 个。` : '，已满足下一档解锁条件。');
             }
@@ -519,7 +519,7 @@
                 document.getElementById('tx-hash').value = '';
                 document.getElementById('donation-amount').value = String(SYSTEM_PRICE);
                 refreshEstimate();
-                showNotification('已完成开通；若存在推荐人，系统已自动为上级结算 33G', 'success');
+                showNotification('已完成开通；购买者 G-Gas 保持 0，若存在推荐人，系统已自动为上级结算 33G', 'success');
                 setTimeout(() => { window.location.href = 'index.html/index.html'; }, 900);
             } catch (e) {
                 console.error(e);
@@ -633,10 +633,26 @@
             }
         }
 
+        function removeLegacyPaypalBlocks() {
+            document.querySelectorAll('*').forEach((node) => {
+                if (!(node instanceof HTMLElement)) return;
+                const text = (node.textContent || '').trim();
+                if (/PayPal\.Me|paypal\.me\/f8618/i.test(text)) {
+                    const block = node.closest('.card, .panel-section, .input-group, .wallet-section, div');
+                    if (block && block !== document.body) {
+                        block.remove();
+                    } else {
+                        node.remove();
+                    }
+                }
+            });
+        }
+
         window.onload = () => {
             setTimeout(() => {
                 ensureReferralPanel();
                 bindReferralPanelActions();
+                removeLegacyPaypalBlocks();
                 if (window.MayijuSecurity && typeof window.MayijuSecurity.upgradeLegacyActivationState === 'function') {
                     window.MayijuSecurity.upgradeLegacyActivationState();
                 }

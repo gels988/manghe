@@ -170,7 +170,6 @@ const I18N = {
             title: "捐赠激活",
             desc: "捐赠 $98 可激活系统（离线模式无法自动验证支付，仅在本机记录）。",
             usdt: "USDT 地址",
-            paypal: "PayPal.Me",
             f8618: "收款号 f8618",
             iPaid: "我已完成捐赠并激活",
             copy: "复制"
@@ -231,7 +230,6 @@ const I18N = {
             title: "Donation Activation",
             desc: "Donate $98 to activate (offline mode cannot verify payment; recorded locally).",
             usdt: "USDT Address",
-            paypal: "PayPal.Me",
             f8618: "Receiver f8618",
             iPaid: "I have donated & activate",
             copy: "Copy"
@@ -288,7 +286,7 @@ const I18N = {
         panels: { register: "Register", lang: "Language", donate: "Donate", growth: "Subsystem", selfcheck: "Self-check", admin: "Admin" },
         register: { title: "Local Register", desc: "Stored only in your browser (no cloud).", name: "Nickname/ID", save: "Save", saved: "Saved" },
         lang: { title: "Language", desc: "Switch UI language.", current: "Current", zh: "Chinese", en: "English", ja: "Japanese", ko: "Korean" },
-        donate: { title: "Donation Activation", desc: "Donate $98 to activate.", usdt: "USDT Address", paypal: "PayPal.Me", f8618: "Receiver f8618", iPaid: "I have donated & activate", copy: "Copy" },
+        donate: { title: "Donation Activation", desc: "Donate $98 to activate.", usdt: "USDT Address", f8618: "Receiver f8618", iPaid: "I have donated & activate", copy: "Copy" },
         growth: { title: "Self Growth", desc: "Each invite adds local points.", points: "Local points", genLink: "Generate invite link", claim: "Redeem token", tokenPlaceholder: "Paste receipt token", claimBtn: "Redeem", download: "Download source" },
         selfcheck: { title: "Security Self-check", desc: "Check channel capability and salt sync.", run: "Run check", ok: "Secure channel established", notReady: "Channel not ready" },
         admin: { title: "Activation & Pool", desc: "Redeem admin/trial codes.", wsUrl: "Signaling WS URL", name: "Target name", code: "Activation code", redeem: "Redeem", saveWs: "Save WS", gen: "Generate trial codes", count: "Count", export: "Export pool", clear: "Clear pool", unlocked: "Admin entry unlocked" },
@@ -313,7 +311,7 @@ const I18N = {
         panels: { register: "Register", lang: "Language", donate: "Donate", growth: "Subsystem", selfcheck: "Self-check", admin: "Admin" },
         register: { title: "Local Register", desc: "Stored only in your browser (no cloud).", name: "Nickname/ID", save: "Save", saved: "Saved" },
         lang: { title: "Language", desc: "Switch UI language.", current: "Current", zh: "Chinese", en: "English", ja: "Japanese", ko: "Korean" },
-        donate: { title: "Donation Activation", desc: "Donate $98 to activate.", usdt: "USDT Address", paypal: "PayPal.Me", f8618: "Receiver f8618", iPaid: "I have donated & activate", copy: "Copy" },
+        donate: { title: "Donation Activation", desc: "Donate $98 to activate.", usdt: "USDT Address", f8618: "Receiver f8618", iPaid: "I have donated & activate", copy: "Copy" },
         growth: { title: "Self Growth", desc: "Each invite adds local points.", points: "Local points", genLink: "Generate invite link", claim: "Redeem token", tokenPlaceholder: "Paste receipt token", claimBtn: "Redeem", download: "Download source" },
         selfcheck: { title: "Security Self-check", desc: "Check channel capability and salt sync.", run: "Run check", ok: "Secure channel established", notReady: "Channel not ready" },
         admin: { title: "Activation & Pool", desc: "Redeem admin/trial codes.", wsUrl: "Signaling WS URL", name: "Target name", code: "Activation code", redeem: "Redeem", saveWs: "Save WS", gen: "Generate trial codes", count: "Count", export: "Export pool", clear: "Clear pool", unlocked: "Admin entry unlocked" },
@@ -798,7 +796,6 @@ function renderLang(){
 
 function renderDonate(){
     const usdt = 'USDT: (请在此处填入地址)';
-    const paypal = 'https://paypal.me/f8618';
     const f8618 = 'f8618';
 
     const wrap = document.createElement('div');
@@ -812,13 +809,6 @@ function renderDonate(){
                     <div class="mono" id="donateUsdt"></div>
                     <div style="margin-top:8px;" class="btn-row">
                         <button class="btn secondary" type="button" id="copyUsdt">${t('donate.copy')}</button>
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size:12px;color:#636e72;margin-bottom:6px;">${t('donate.paypal')}</div>
-                    <div class="mono" id="donatePaypal"></div>
-                    <div style="margin-top:8px;" class="btn-row">
-                        <button class="btn secondary" type="button" id="copyPaypal">${t('donate.copy')}</button>
                     </div>
                 </div>
                 <div>
@@ -836,10 +826,8 @@ function renderDonate(){
     `;
     panelBodyEl.appendChild(wrap);
     wrap.querySelector('#donateUsdt').textContent = usdt;
-    wrap.querySelector('#donatePaypal').textContent = paypal;
     wrap.querySelector('#donateF8618').textContent = f8618;
     wrap.querySelector('#copyUsdt').addEventListener('click', ()=> copyText(usdt));
-    wrap.querySelector('#copyPaypal').addEventListener('click', ()=> copyText(paypal));
     wrap.querySelector('#copyF8618').addEventListener('click', ()=> copyText(f8618));
     wrap.querySelector('#donateActivate').addEventListener('click', ()=>{
         markCodeUsed(`DONATE-${Date.now()}`);

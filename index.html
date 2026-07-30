@@ -782,7 +782,6 @@ const I18N = {
             title: "捐赠激活",
             desc: "捐赠 $98 可激活系统（离线模式无法自动验证支付，仅在本机记录）。",
             usdt: "USDT 地址",
-            paypal: "PayPal.Me",
             f8618: "收款号 f8618",
             iPaid: "我已完成捐赠并激活",
             copy: "复制"
@@ -843,7 +842,6 @@ const I18N = {
             title: "Donation Activation",
             desc: "Donate $98 to activate (offline mode cannot verify payment; recorded locally).",
             usdt: "USDT Address",
-            paypal: "PayPal.Me",
             f8618: "Receiver f8618",
             iPaid: "I have donated & activate",
             copy: "Copy"
@@ -904,7 +902,6 @@ const I18N = {
             title: "寄付で有効化",
             desc: "$98 の寄付で有効化（オフラインのため支払い検証不可、ローカル記録）。",
             usdt: "USDT アドレス",
-            paypal: "PayPal.Me",
             f8618: "受取 f8618",
             iPaid: "寄付完了・有効化",
             copy: "コピー"
@@ -965,7 +962,6 @@ const I18N = {
             title: "후원 활성화",
             desc: "$98 후원 시 활성화(오프라인으로 결제 검증 불가, 로컬 기록).",
             usdt: "USDT 주소",
-            paypal: "PayPal.Me",
             f8618: "수취 f8618",
             iPaid: "후원 완료/활성화",
             copy: "복사"
@@ -1395,7 +1391,6 @@ function renderLang(){
 
 function renderDonate(){
     const usdt = 'USDT: (请在此处填入地址)';
-    const paypal = 'https://paypal.me/f8618';
     const f8618 = 'f8618';
 
     const wrap = document.createElement('div');
@@ -1409,13 +1404,6 @@ function renderDonate(){
                     <div class="mono" id="donateUsdt"></div>
                     <div style="margin-top:8px;" class="btn-row">
                         <button class="btn secondary" type="button" id="copyUsdt">${t('donate.copy')}</button>
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size:12px;color:#636e72;margin-bottom:6px;">${t('donate.paypal')}</div>
-                    <div class="mono" id="donatePaypal"></div>
-                    <div style="margin-top:8px;" class="btn-row">
-                        <button class="btn secondary" type="button" id="copyPaypal">${t('donate.copy')}</button>
                     </div>
                 </div>
                 <div>
@@ -1433,10 +1421,8 @@ function renderDonate(){
     `;
     panelBodyEl.appendChild(wrap);
     wrap.querySelector('#donateUsdt').textContent = usdt;
-    wrap.querySelector('#donatePaypal').textContent = paypal;
     wrap.querySelector('#donateF8618').textContent = f8618;
     wrap.querySelector('#copyUsdt').addEventListener('click', ()=> copyText(usdt));
-    wrap.querySelector('#copyPaypal').addEventListener('click', ()=> copyText(paypal));
     wrap.querySelector('#copyF8618').addEventListener('click', ()=> copyText(f8618));
     wrap.querySelector('#donateActivate').addEventListener('click', ()=>{
         markCodeUsed(`DONATE-${Date.now()}`);
